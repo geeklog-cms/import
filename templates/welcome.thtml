@@ -1,0 +1,20 @@
+{# begin {templatelocation} #}
+<h2>{lang_title}</h2>
+
+<p>{lang_instructions}</p>
+
+<p>{lang_warning}</p>
+
+<div class="uk-alert uk-alert-danger">
+	{lang_warning_alert}
+</div>
+
+<div id="import">
+	<form id="importform" class="uk-form" action="{site_admin_url}/plugins/import/index.php" method="post" style="display:inline;">
+		<input type="hidden" name="{action}" value="{action}">
+		<input type="hidden" name="{security_token_name}" value="{security_token}">
+		<button id="continuebutton" class="uk-button uk-button-primary" type="submit" >{lang_continue}</button>
+		<button id="cancelbutton" name="cancelbutton" class="uk-button uk-button-danger" type="submit" >{lang_cancel}</button>
+	</form>
+</div>
+{# end {templatelocation} #}

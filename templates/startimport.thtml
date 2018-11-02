@@ -1,0 +1,53 @@
+{# begin {templatelocation} #}
+
+<h2>{lang_title}</h2>
+
+<p>{lang_instructions}</p>
+
+{!if errors}
+<div class="uk-alert uk-alert-danger">
+	<!-- BEGIN errors -->
+	<p>{error_message}</p>
+	<!-- END errors -->
+</div>
+{!endif}
+
+<form id="startimportform" class="uk-form uk-form-horizontal" action="{site_admin_url}/plugins/import/index.php" method="post" style="display:inline;">
+	<input type="hidden" name="{action}" value="{action}">
+	<input type="hidden" name="{security_token_name}" value="{security_token}">
+
+	<div class="uk-form-row">
+		<label class="uk-form-label">{lang_dbname}</label>
+		<div class="uk-form-controls">
+			<input type="text" name="dbname" value="{dbname}">
+		</div>
+	</div>
+
+	<div class="uk-form-row">
+		<label class="uk-form-label">{lang_dbuser}</label>
+		<div class="uk-form-controls">
+			<input type="text" name="dbuser" value="{dbuser}">
+		</div>
+	</div>
+
+	<div class="uk-form-row">
+		<label class="uk-form-label">{lang_dbpasswd}</label>
+		<div class="uk-form-controls">
+			<input type="password" name="dbpasswd" value="{dbpasswd}">
+		</div>
+	</div>
+
+	<div class="uk-form-row">
+		<label class="uk-form-label">{lang_dbprefix}</label>
+		<div class="uk-form-controls">
+			<input type="text" name="dbprefix" value="{dbprefix}">
+		</div>
+	</div>
+
+	<div class="uk-form-row">
+		<button id="continuebutton" class="uk-button uk-button-primary" type="submit" >{lang_continue}</button>
+		<button id="cancelbutton" name="cancelbutton" class="uk-button uk-button-danger" type="submit" >{lang_cancel}</button>
+	</div>
+</form>
+
+{# end {templatelocation} #}

@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="import" basedir="." default="help">
+    <property name="srcDir" value="." override="false"/>
+    <property name="dstDir" value="../dist" override="false"/>
+    <property name="releaseDir" value="../../dist" override="false"/>
+    <property name="local.plugin.file" value="plugin.xml" />
+
+    <includepath classpath="../../tasks"/>
+    <taskdef name="parsepluginxml" classname="ParsePluginXMLTask"/>
+
+    <parsepluginxml file="${local.plugin.file}" variable="id" outputProperty="pi.id" />
+    <parsepluginxml file="${local.plugin.file}" variable="version" outputProperty="pi.version" />
+    <parsepluginxml file="${local.plugin.file}" variable="glfusionversion" outputProperty="pi.glfusion_version"/>
+    <parsepluginxml file="${local.plugin.file}" variable="name" outputProperty="pi.name" />
+
+    <!-- ============================== -->
+    <!-- Target: help                   -->
+    <!-- ============================== -->
+    <target name="help">
+        <echo msg="${pi.name} Plugin Build Tools"/>
+        <echo msg="----------------------"/>
+        <echo msg="This must be run from where 'build.xml' resides."/>
+        <echo msg="Update 'build.properties' file in the root directory, if necessary."/>
+        <echo msg=""/>
+        <echo msg="To show help [this screen], enter:"/>
+        <echo msg="phing[ENTER]"/>
+        <echo msg=""/>
+        <echo msg="To create the Plugin distribution, execute:"/>
+        <echo msg="phing dist[ENTER]"/>
+        <echo msg=""/>
+    </target>
+
+    <!-- ============================== -->
+    <!-- Target: prepare                -->
+    <!-- ============================== -->
+    <target name="prepare">
+
+        <echo msg="Building Distribution for Plugin: ${pi.name}" />
+        <echo msg="Making directory ${dstDir}..."/>
+        <delete dir="${dstDir}/${pi.id}" quiet="true"/>
+        <mkdir dir="${dstDir}/${pi.id}"/>
+
+    </target>
+
+    <!-- ============================== -->
+    <!-- Target: build                  -->
+    <!-- ============================== -->
+    <target name="build" depends="prepare">
+
+        <!-- Copy files -->
+        <echo msg="Copying files..."/>
+        <copy todir="${dstDir}/${pi.id}">
+            <fileset dir="${srcDir}">
+                <exclude name=".git"/>
+                <exclude name=".git/**"/>
+                <exclude name=".gitignore"/>
+                <exclude name=".idea"/>
+                <exclude name=".idea/**"/>
+                <exclude name="build"/>
+                <exclude name="build/**"/>
+                <exclude name="build.xml"/>
+                <exclude name="build.properties"/>
+                <exclude name="phpunit.xml"/>
+                <exclude name="**/buildpackage.php"/>
+                <exclude name="system/build"/>
+                <exclude name="system/build/**"/>
+                <exclude name="system/composer.phar"/>
+                <exclude name="**/tests"/>
+                <exclude name="**/tests/**"/>
+                <exclude name="**/*.php.dist"/>
+                <exclude name="*.tar.gz"/>
+                <exclude name="*.zip"/>
+            </fileset>
+        </copy>
+
+        <!-- Change permissions -->
+        <echo msg="Changing directory and file permissions..."/>
+        <chmod file="${dstDir}/${pi.id}" mode="0777"/>
+
+        <!-- The subtask needs to know where to find templates that reference JS files.  -->
+
+        <foreach param="filename" absparam="absfilename" target="subtask.minify-js">
+            <!-- The subtask needs to be told which files to minify. -->
+            <fileset dir="${dstDir}/${pi.id}/admin">
+                <include name="**/*.js"/>
+            </fileset>
+        </foreach>
+    </target>
+
+    <target name="subtask.minify-js" description="Minify JS files.">
+        <exec command="dirname '${absfilename}'" outputProperty="dirname" />
+        <exec command="basename '${filename}' .js" outputProperty="basename" />
+        <property name="minified_path" value="${dirname}/${basename}.min.js" />
+
+        <!-- compress JS -->
+        <jsMin targetDir="${dstDir}/${pi.id}/admin" suffix=".min" failOnError="false">
+            <fileset dir="${dstDir}/${pi.id}/admin">
+                <include name="${basename}.js"/>
+            </fileset>
+        </jsMin>
+
+        <delete file="${dstDir}/${pi.id}/admin/${basename}.js" />
+
+        <!-- Search for references to the original file and replace with the minified filename and hash. -->
+        <!-- If the original is foo.js, the replacement will be something like foo-min-694136eac92bb82e23a0837c814a1bce4fd54d46.js -->
+        <!-- The Apache rewrite rule for this replacement is: -->
+        <!-- RewriteRule ^(.*)-min-[a-f0-9]+\.(css|js|gif|png|jpg)$ /$1-min.$2 [L] -->
+        <reflexive>
+            <fileset dir="${dstDir}/${pi.id}">
+                <include name="functions.inc" />
+                <include name="templates/*"/>
+            </fileset>
+            <filterchain>
+                <replaceregexp>
+                    <regexp pattern="${basename}\.js" replace="${basename}.min.js"/>
+                </replaceregexp>
+            </filterchain>
+        </reflexive>
+
+    </target>
+
+    <!-- ============================== -->
+    <!-- Target: dist                   -->
+    <!-- ============================== -->
+    <target name="dist" depends="build">
+        <echo msg="Creating an archive..."/>
+        <delete file="${releaseDir}/${pi.id}-${pi.version}-${pi.glfusion_version}.zip" quiet="true"/>
+        <zip destfile="${releaseDir}/${pi.id}-${pi.version}-${pi.glfusion_version}.zip">
+            <fileset dir="${dstDir}">
+                <include name="**/**"/>
+            </fileset>
+        </zip>
+
+        <echo msg="Removing work files..."/>
+        <delete dir="${dstDir}/${pi.id}"/>
+        <delete dir="${dstDir}"/>
+
+        <echo msg="${pi.name} built and compressed in ${releaseDir} directory"/>
+    </target>
+</project>

@@ -1,0 +1,10 @@
+<plugin>
+    <id>import</id>
+    <name>Import</name>
+    <description>Imports GL into glFusion</description>
+    <version>1.0.1</version>
+    <glfusionversion>1.7.0</glfusionversion>
+    <phpversion>5.6.0</phpversion>
+    <url>https://www.glfusion.org</url>
+    <maintainer>Mark R. Evans</maintainer>
+</plugin>
